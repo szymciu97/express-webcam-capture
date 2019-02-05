@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Express Webcam Capture</title>
+</head>
+
+<body>
+    <div>
+        <video autoplay muted id="video"></video>
+    </div>
+    <div id="thumbnailContainer"></div>
+    <script>
+        const width = 1080,
+            height = 720;
+
+        const video = document.getElementById('video');
+        video.width = width;
+        video.height = height;
+
+        /* Setting up the constraint */
+        var facingMode = "user"; // Can be 'user' or 'environment' to access back or front camera (NEAT!)
+        var constraints = {
+            audio: false,
+            video: {
+                facingMode: facingMode
+            }
+        };
+
+        /* Stream it to video element */
+        navigator.mediaDevices.getUserMedia(constraints).then(function success(stream) {
+            video.srcObject = stream;
+        });
+
+        video.addEventListener('click', () => {
+            console.log('clicked');
+            generateThumbnail()
+        })
+
+        function generateThumbnail() {
+
+            //generate thumbnail URL data
+            var tmpcanvas = document.createElement('canvas');
+            tmpcanvas.width = width
+            tmpcanvas.height = height;
+            tmpcanvas.getContext('2d').drawImage(video, 0, 0, width, height);
+
+            var dataURL = tmpcanvas.toDataURL();
+
+            let formData = new FormData();
+            formData.append('image', dataURL);
+
+            fetch('http://localhost:3000/images', {
+                method: 'POST',
+                body: formData
+            });
+
+            //create img
+            var img = document.createElement('img');
+            img.setAttribute('src', dataURL);
+
+            //append img in container div
+            document.getElementById('thumbnailContainer').appendChild(img);
+
+        }
+    </script>
+</body>
+
+</html>
